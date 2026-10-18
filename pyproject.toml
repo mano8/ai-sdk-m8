@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-sdk-m8"
-version = "0.1.0"
+version = "0.2.0"
 description = "Typed client SDK for the m8 AI gateway and the Ed25519 signed-object / job-context primitive."
 readme = "README.md"
 license = { file = "LICENSE" }
