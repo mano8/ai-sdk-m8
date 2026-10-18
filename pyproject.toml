@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-sdk-m8"
+version = "0.1.0"
+description = "Typed client SDK for the m8 AI gateway and the Ed25519 signed-object / job-context primitive."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Eli Serra", email = "e.serra173@gmail.com" }]
+requires-python = ">=3.12"
+keywords = ["ai", "gateway", "sdk", "ed25519", "job-context", "microservices"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "pydantic>=2",
+    "httpx>=0.28",
+]
+
+[project.optional-dependencies]
+# Signing and verification of signed objects / job contexts.
+jobcontext = ["cryptography>=44"]
+dev = ["pytest>=8.0", "ruff>=0.9.0", "mypy>=1.14.0", "bandit>=1.8.0",
+       "coverage>=7.0", "pytest-cov>=6.0", "pyyaml>=6.0", "types-PyYAML"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["ai_sdk_m8"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "C90", "D"]
+ignore = [
+    "E501",
+    "D100", "D104", "D105", "D107",
+    "D203", "D211", "D212", "D215",
+    "D301", "D401", "D403", "D404", "D415", "D416", "D417",
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ai_sdk_m8"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=ai_sdk_m8 --cov-report=xml --cov-report=term-missing"
