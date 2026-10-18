@@ -9,8 +9,9 @@ by `ai-gateway-m8`.
 
 - Releases are published to PyPI only through Trusted Publishing (OIDC); no
   upload token is stored anywhere.
-- Every release attaches an SPDX JSON SBOM to its GitHub Release.
-- CI actions are pinned by full commit SHA and run with read-only default
+- Every release attaches a Software Package Data Exchange (SPDX) JSON software
+  bill of materials (SBOM) to its GitHub Release.
+- CI actions are pinned by full commit hash (Secure Hash Algorithm, SHA) and run with read-only default
   permissions.
 - `pip-audit` and `bandit` run on every pull request.
 
