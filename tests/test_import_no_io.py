@@ -65,7 +65,16 @@ def test_fixture_blocks_io(no_io: None) -> None:
 
 
 @pytest.mark.parametrize(
-    "module", ["ai_sdk_m8", "ai_sdk_m8.schemas", "ai_sdk_m8.headers"]
+    "module",
+    [
+        "ai_sdk_m8",
+        "ai_sdk_m8.schemas",
+        "ai_sdk_m8.headers",
+        "ai_sdk_m8.signed",
+        "ai_sdk_m8.jobcontext",
+        "ai_sdk_m8.jobcontext._cli",
+        "ai_sdk_m8.testing",
+    ],
 )
 def test_import_performs_no_io(fresh_modules: None, no_io: None, module: str) -> None:
     imported = importlib.import_module(module)
