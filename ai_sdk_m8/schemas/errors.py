@@ -39,6 +39,15 @@ class AiErrorCode(StrEnum):
     BREAKER_OPEN = "breaker_open"
     BOUNDARY_DENIED = "boundary_denied"
     EXECUTION_IDENTITY_CHANGED = "execution_identity_changed"
+    #: Typed ``503``: the gateway's clock and its database clock disagree by
+    #: more than the configured bound, so execution is refused (D-24).
+    CLOCK_SKEW_EXCEEDED = "clock_skew_exceeded"
+    #: Typed ``503``: a bounded gateway resource (spool capacity, concurrent
+    #: spools) is exhausted; retry after ``retry_after_seconds`` (D-45).
+    CAPACITY_EXHAUSTED = "capacity_exhausted"
+    #: Typed ``503``: the gateway database was restored and execution is held
+    #: until the operator reconciles it.
+    RESTORE_DETECTED = "restore_detected"
 
 
 class ProviderStatusClass(StrEnum):

@@ -132,6 +132,9 @@ def test_error_codes_are_exactly_the_contract_set() -> None:
         "breaker_open",
         "boundary_denied",
         "execution_identity_changed",
+        "clock_skew_exceeded",
+        "capacity_exhausted",
+        "restore_detected",
     }
 
 
