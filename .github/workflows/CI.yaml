@@ -134,4 +134,4 @@ jobs:
         run: python -c "import importlib.util, sys; sys.exit(importlib.util.find_spec('cryptography') is not None)"
 
       - name: Run the core tests
-        run: pytest --no-cov tests/test_core_without_extra.py tests/test_import_no_io.py tests/test_package.py
+        run: pytest --no-cov tests/test_core_without_extra.py tests/test_import_no_io.py tests/test_package.py tests/test_client.py tests/test_management_schemas.py

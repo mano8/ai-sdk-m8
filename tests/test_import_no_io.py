@@ -74,6 +74,11 @@ def test_fixture_blocks_io(no_io: None) -> None:
         "ai_sdk_m8.jobcontext",
         "ai_sdk_m8.jobcontext._cli",
         "ai_sdk_m8.testing",
+        "ai_sdk_m8.client",
+        "ai_sdk_m8.client.routes",
+        "ai_sdk_m8.compatibility",
+        "ai_sdk_m8.schemas.management",
+        "ai_sdk_m8.schemas.meta",
     ],
 )
 def test_import_performs_no_io(fresh_modules: None, no_io: None, module: str) -> None:

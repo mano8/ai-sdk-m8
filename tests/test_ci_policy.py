@@ -70,6 +70,9 @@ def test_ci_tests_the_extra_and_the_core_without_it() -> None:
     assert 'pip install -e ".[dev]"' in core_runs
     assert any("find_spec('cryptography') is not None" in run for run in core_runs)
     assert any("tests/test_core_without_extra.py" in run for run in core_runs)
+    # the gateway client and the management models need no extra either
+    assert any("tests/test_client.py" in run for run in core_runs)
+    assert any("tests/test_management_schemas.py" in run for run in core_runs)
 
 
 def test_markdownlint_keeps_md024_siblings_only() -> None:
