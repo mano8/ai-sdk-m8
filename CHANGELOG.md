@@ -31,6 +31,35 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   - `python -m ai_sdk_m8.jobcontext keygen --out <seed-file>`.
 - `ai_sdk_m8.testing.load_vectors()`: known-answer vectors for the three
   domain tags, shipped as package data.
+- `ai_sdk_m8.client`: `AiGatewayClient` and `AsyncAiGatewayClient`.
+  - Explicit configuration (`base_url`, auth strategy, optional `httpx`
+    client), never read from the environment; an SDK-built client sets
+    `trust_env=False`.
+  - Auth strategies `BearerJwt` (management routes only) and
+    `ServiceClient(client_id, secret)`. Both redact their secret in `repr`.
+  - Execution methods `ocr_spool` (streamed two-part multipart),
+    `ocr_dispatch`, `embed`, `rerank` and `structured_output`, each taking a
+    required keyword `job_context` for that one call. No constructor or
+    strategy accepts one, and the client keeps no reference after the call.
+  - `list_profiles`, `get_profile`, `meta`, `check_compatibility`, and the
+    `admin` namespace for every management route.
+  - Redirects refused on every request (`AiGatewayRedirectError`), whatever
+    the injected client is configured to do; no retry.
+  - Errors: `AiGatewayError` for a gateway `AiError`, `AiGatewayHTTPError`,
+    `AiGatewayResponseError` and `IncompatibleGatewayError`.
+  - `ai_sdk_m8.client.routes`, the route table shared with the gateway's
+    tests.
+- `ai_sdk_m8.compatibility`: `MIN_GATEWAY_VERSION` (`0.2.0`),
+  `CONTRACT_NAME`, `CONTRACT_MAJOR` and `check_gateway_meta`.
+- `ai_sdk_m8.schemas.management`: the management wire models (providers,
+  models, profiles and revisions, credentials, bindings, remote artifacts).
+  Write bodies carry no owner, tenant or scope, secrets are `SecretStr`,
+  provider header names follow the allow and deny rules, and a profile's
+  `execution_config` is bounded, integer-only JSON.
+- `ai_sdk_m8.schemas.meta.GatewayMeta`: the fleet `/meta` shape plus the
+  gateway's reported configuration values.
+- `AiErrorCode` gains the typed `503` codes `clock_skew_exceeded`,
+  `capacity_exhausted` and `restore_detected`.
 
 ## [0.1.0] - 2026-10-18
 

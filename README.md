@@ -4,9 +4,9 @@ Typed client SDK for the m8 AI gateway (`ai-gateway-m8`) and the single
 implementation of the Ed25519 signed-object rule with its job-context
 primitive.
 
-> Status: pre-release. The gateway schemas, header names, the signed-object
-> rule and the job-context primitive are in place; the clients land in a later
-> release.
+> Status: pre-release (`0.2.0`). The gateway schemas, header names, the
+> signed-object rule, the job-context primitive and the sync and async
+> clients are in place.
 
 ## Schemas
 
@@ -35,6 +35,74 @@ receipt's `result_sha256` covers.
 `ai_sdk_m8.headers` names the wire headers: `INTERNAL_CLIENT_HEADER`,
 `INTERNAL_TOKEN_HEADER` (the fleet's service-client names) and
 `JOB_CONTEXT_HEADER`.
+
+## Clients
+
+`ai_sdk_m8.client` holds `AiGatewayClient` (sync) and `AsyncAiGatewayClient`.
+Configuration is explicit: a `base_url` that includes the gateway's
+`API_PREFIX`, an auth strategy, and optionally your own `httpx` client.
+Nothing is read from the environment, and a client the SDK builds itself
+ignores proxy variables.
+
+- `ServiceClient(client_id, secret)` authenticates a service on the
+  execution routes and on `profiles:read`. It is the client's identity.
+- `BearerJwt(token)` authenticates a user on the management routes
+  (`client.admin`). Execution routes never accept it.
+- A **job context is never client state.** Every execution method takes a
+  required keyword `job_context` for that one call, sends it once and keeps
+  no reference to it. A call without one is a type error and a `ValueError`.
+
+```python
+from ai_sdk_m8.client import AiGatewayClient, ServiceClient
+from ai_sdk_m8.jobcontext import JobContextToken
+from ai_sdk_m8.schemas import EmbedRequest, OcrRequest
+
+with AiGatewayClient(
+    "http://ai-gateway:8000/ai", ServiceClient("media-service", secret)
+) as gateway:
+    answer = gateway.embed(
+        EmbedRequest(profile_key="embed.default", inputs=("text",)),
+        job_context=JobContextToken(token),
+    )
+    # OCR is two-phase: spool under a `spool` context, then dispatch the
+    # spool under a fresh `dispatch` context.
+    with open(path, "rb") as document:
+        spool = gateway.ocr_spool(
+            document, OcrRequest(profile_key="ocr"), job_context=spool_token
+        )
+    result = gateway.ocr_dispatch(spool.spool_id, job_context=dispatch_token)
+```
+
+`ocr_spool` streams the file as a two-part multipart body (`options`, then
+`document`) in bounded chunks, never as base64 and never read whole, under a
+fixed file name so the original never leaves your process.
+
+The other methods are `rerank`, `structured_output`, `list_profiles`,
+`get_profile`, `meta` and `check_compatibility`. `client.admin` covers the
+management routes: `providers`, `models`, `profiles`, the platform's own
+`credentials` and `bindings`, `user_credentials` (the superuser's
+disable/delete of a user's key), `tenant(tenant_id)` and `me` (each with
+`credentials` and `bindings`). Their bodies are the models in
+`ai_sdk_m8.schemas.management`. Write bodies never carry an owner, a tenant
+or a scope, and update bodies send only the fields you set.
+
+Behaviour you can rely on:
+
+- **Redirects are refused on every request**, even when your injected
+  client follows them, because `httpx` strips `Authorization` on a
+  cross-origin redirect but not `X-Internal-Token` or `X-AI-Job-Context`. A
+  3xx raises `AiGatewayRedirectError`.
+- **Nothing is retried.**
+- A gateway `AiError` answer raises `AiGatewayError` with its typed `code`.
+  Any other non-2xx raises `AiGatewayHTTPError(status_code)`, and a 2xx body
+  that does not match the model raises `AiGatewayResponseError`. No error
+  message carries a header, a body or a secret, and `repr` of every auth
+  strategy redacts its secret.
+- `check_compatibility()` reads `/meta` only when you call it, and raises
+  `IncompatibleGatewayError` unless the gateway names the `ai-gateway-m8`
+  contract major `1` at version `MIN_GATEWAY_VERSION` (`0.2.0`) or later.
+- `ai_sdk_m8.client.routes` is the route table the client builds every URL
+  from. The gateway's tests check that it serves each route.
 
 ## Signed objects and job contexts
 
