@@ -16,6 +16,21 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `provider_metadata`; `AiGatewayError`.
 - `ai_sdk_m8.headers`: `INTERNAL_CLIENT_HEADER`, `INTERNAL_TOKEN_HEADER` and
   `JOB_CONTEXT_HEADER`, with a parity test against the fleet values.
+- `ai_sdk_m8.signed` (`jobcontext` extra): the Ed25519 signed-object rule.
+  It provides `sign_object`, `sign_record` and `verify_object` for the
+  compact and `{record, kid, sig}` forms. The verifier supplies the domain
+  tag. It enforces per-domain size caps, strict unpadded base64url,
+  integer-only JCS, the duplicate-key, float, range, surrogate and depth
+  refusals, and the canonical byte-compare. It also provides `kid`
+  derivation, the public-key encoding and seed files.
+- `ai_sdk_m8.jobcontext` (`jobcontext` extra):
+  - `JobContextPayload` and `OcrReceiptPayload`;
+  - `sign` / `verify`, with typed `ContextInvalidError` and
+    `ContextExpiredError`;
+  - `JobContextToken`, whose `repr` redacts the signature;
+  - `python -m ai_sdk_m8.jobcontext keygen --out <seed-file>`.
+- `ai_sdk_m8.testing.load_vectors()`: known-answer vectors for the three
+  domain tags, shipped as package data.
 
 ## [0.1.0] - 2026-10-18
 

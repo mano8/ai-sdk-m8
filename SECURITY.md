@@ -5,6 +5,17 @@ credentials, reads no settings or environment variables, and makes no
 decision on behalf of the gateway: provider and data-class policy is enforced
 by `ai-gateway-m8`.
 
+## Signed objects
+
+- One composition, Ed25519 over `domain_tag || 0x00 || JCS(payload)`, serves
+  every signature purpose. Each purpose has its own key, and the verifier
+  always names the domain it expects.
+- Untrusted input is size-capped and strictly parsed before any signature
+  work. Errors and `repr` never contain a token, a seed or a signature.
+- Seed files are created `0600` with `O_EXCL`; `keygen` never prints a seed.
+- The shipped vector seeds are public test values and must never sign
+  anything in a deployment.
+
 ## Supply chain
 
 - Releases are published to PyPI only through Trusted Publishing (OIDC); no
