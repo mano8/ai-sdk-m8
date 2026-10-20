@@ -61,6 +61,20 @@ def test_release_workflow_attaches_spdx_sbom() -> None:
     assert "upload-release-assets: true" in text
 
 
+def test_ci_tests_the_extra_and_the_core_without_it() -> None:
+    """The test matrix installs ``jobcontext``; one job proves the core lacks it."""
+    jobs = _load(WORKFLOWS / "CI.yaml")["jobs"]
+    test_runs = [step.get("run", "") for step in jobs["test"]["steps"]]
+    assert 'pip install -e ".[dev,jobcontext]"' in test_runs
+    core_runs = [step.get("run", "") for step in jobs["core-without-extra"]["steps"]]
+    assert 'pip install -e ".[dev]"' in core_runs
+    assert any("find_spec('cryptography') is not None" in run for run in core_runs)
+    assert any("tests/test_core_without_extra.py" in run for run in core_runs)
+    # the gateway client and the management models need no extra either
+    assert any("tests/test_client.py" in run for run in core_runs)
+    assert any("tests/test_management_schemas.py" in run for run in core_runs)
+
+
 def test_markdownlint_keeps_md024_siblings_only() -> None:
     """The fleet MD024 override is present."""
     cfg = _load(ROOT / ".markdownlint.yaml")

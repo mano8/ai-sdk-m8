@@ -8,6 +8,8 @@ description = "Project-wide allowlist"
 paths = [
   # Test fixtures may contain deterministic low-entropy test values
   '''tests/''',
+  # Public C-03 known-answer vectors: seeds are SHA-256 of published labels
+  '''ai_sdk_m8/testing/vectors\.json''',
 ]
 # Add SHAs of any prior accidental secret commits here after rotation:
 # commits = [
