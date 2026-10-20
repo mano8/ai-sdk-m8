@@ -165,6 +165,26 @@ def _derives(public_key: bytes, kid: object) -> bool:
         return False
 
 
+def _split(token_or_record: object, cap: int) -> tuple[dict[str, object], bytes, bytes]:
+    if isinstance(token_or_record, str):
+        body, payload_jcs, signature = _split_compact(token_or_record, cap)
+    elif isinstance(token_or_record, Mapping):
+        body, payload_jcs, signature = _split_record(token_or_record, cap)
+    else:
+        raise MalformedSignedObjectError("signed object is neither compact nor record")
+    if not isinstance(body, dict) or len(signature) != SIGNATURE_BYTES:
+        raise MalformedSignedObjectError("payload must be an object, sig 64 bytes")
+    return body, payload_jcs, signature
+
+
+def _public_key(body: Mapping[str, object], public_keys: Mapping[str, bytes]) -> bytes:
+    kid = body.get("kid")
+    public_key = public_keys.get(kid) if isinstance(kid, str) else None
+    if public_key is None or not _derives(public_key, kid):
+        raise UnknownKeyError("signed object names no configured key")
+    return public_key
+
+
 def verify_object[M: BaseModel](
     token_or_record: str | Mapping[str, object],
     *,
@@ -180,19 +200,8 @@ def verify_object[M: BaseModel](
     :class:`SignedObjectError` subclass naming the stage that refused it.
     """
     tag = _domain(domain)
-    cap = MAX_ENCODED_BYTES[tag]
-    if isinstance(token_or_record, str):
-        body, payload_jcs, signature = _split_compact(token_or_record, cap)
-    elif isinstance(token_or_record, Mapping):
-        body, payload_jcs, signature = _split_record(token_or_record, cap)
-    else:
-        raise MalformedSignedObjectError("signed object is neither compact nor record")
-    if not isinstance(body, dict) or len(signature) != SIGNATURE_BYTES:
-        raise MalformedSignedObjectError("payload must be an object, sig 64 bytes")
-    kid = body.get("kid")
-    public_key = public_keys.get(kid) if isinstance(kid, str) else None
-    if public_key is None or not _derives(public_key, kid):
-        raise UnknownKeyError("signed object names no configured key")
+    body, payload_jcs, signature = _split(token_or_record, MAX_ENCODED_BYTES[tag])
+    public_key = _public_key(body, public_keys)
     if not verify_bytes(public_key, signature, signing_input(tag, payload_jcs)):
         raise SignatureInvalidError("signature does not verify")
     if body.get("typ") != tag.value or "v" not in body:

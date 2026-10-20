@@ -67,7 +67,8 @@ def _object(value: Mapping[object, object], depth: int) -> str:
     return "{" + body + "}"
 
 
-def _encode(value: object, depth: int) -> str:
+def _scalar(value: object) -> str | None:
+    """Encode a JSON scalar; ``None`` means ``value`` is not one."""
     if value is None:
         return "null"
     if isinstance(value, bool):
@@ -78,6 +79,13 @@ def _encode(value: object, depth: int) -> str:
         return str(value)
     if isinstance(value, str):
         return _string(value)
+    return None
+
+
+def _encode(value: object, depth: int) -> str:
+    scalar = _scalar(value)
+    if scalar is not None:
+        return scalar
     if depth >= MAX_DEPTH:
         raise MalformedSignedObjectError("nesting too deep")
     if isinstance(value, Mapping):

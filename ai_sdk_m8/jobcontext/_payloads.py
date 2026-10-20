@@ -127,22 +127,24 @@ class JobContextPayload(SignedPayload):
             raise ValueError("capability has no V1 route")
         if not self.iat <= self.nbf < self.exp:
             raise ValueError("claims must satisfy iat <= nbf < exp")
-        if self.allowed_boundaries is not None and len(
-            set(self.allowed_boundaries)
-        ) != len(self.allowed_boundaries):
+        boundaries = self.allowed_boundaries
+        if boundaries is not None and len(set(boundaries)) != len(boundaries):
             raise ValueError("allowed_boundaries repeats a boundary")
+        self._check_ocr_claims()
+        return self
+
+    def _check_ocr_claims(self) -> None:
         ocr_claims = [getattr(self, name) for name in _OCR_ONLY]
         if self.capability is not Capability.OCR:
             if any(claim is not None for claim in [*ocr_claims, self.spool_id]):
                 raise ValueError("OCR claims are forbidden outside ocr")
-            return self
+            return
         if any(claim is None for claim in ocr_claims):
             raise ValueError("ocr needs phase, input_sha256, input_bytes and the hash")
         if (self.phase is JobContextPhase.DISPATCH) != (self.spool_id is not None):
             raise ValueError(
                 "spool_id is required for dispatch and forbidden for spool"
             )
-        return self
 
 
 class OcrReceiptPayload(SignedPayload):
