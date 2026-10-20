@@ -8,25 +8,25 @@ by `ai-gateway-m8`.
 ## Signed objects
 
 - One composition, Ed25519 over `domain_tag || 0x00 || JCS(payload)`, serves
-  every signature purpose. Each purpose has its own key, and the verifier
-  always names the domain it expects.
+  every signature purpose. Each purpose has its own key, and the domain
+  comes from the verifier's argument, not from the signed object.
 - Untrusted input is size-capped and strictly parsed before any signature
-  work. Errors and `repr` never contain a token, a seed or a signature.
-- Seed files are created `0600` with `O_EXCL`; `keygen` never prints a seed.
-- The shipped vector seeds are public test values and must never sign
-  anything in a deployment.
+  work. Errors and `repr` contain no token, seed or signature.
+- Seed files are created `0600` with `O_EXCL`; `keygen` prints the `kid` and
+  the public key, not the seed.
+- The shipped vector seeds are public test values. Signing with them in a
+  deployment is a misconfiguration.
 
 ## Gateway clients
 
-- A job context is passed to the one call it authorises and is never stored
-  on the client.
+- A job context is passed to the one call it authorises; the client keeps no
+  reference to it.
 - Redirects are refused on every request, so `X-Internal-Token` and
-  `X-AI-Job-Context` can never be forwarded to another origin.
+  `X-AI-Job-Context` are not forwarded to another origin.
 - An SDK-built `httpx` client ignores proxy environment variables.
-- Errors and `repr` never contain a service secret, a user token or a job
-  context.
-- OCR documents are sent under a fixed file name, so the original file name
-  never leaves the caller.
+- Errors and `repr` contain no service secret, user token or job context.
+- Optical character recognition (OCR) documents are sent under a fixed file
+  name, so the original file name stays with the caller.
 
 ## Supply chain
 
